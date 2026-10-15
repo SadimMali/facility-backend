@@ -12,3 +12,49 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ROLE {
+  USER
+  ADMIN
+  MANAGER
+  TECHNICIAN
+}
+
+model User {
+  user_id    String  @id @default(uuid())
+  email      String  @unique
+  firstName  String
+  middleName String?
+  LastName   String
+  password   String
+  avatar_url String?
+  role       ROLE    @default(USER)
+
+  addresses Address[]
+
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+}
+
+model Address {
+  address_id   String   @id @default(uuid())
+  label        String? // Home, Work,
+  fullName     String?
+  phone        String?
+  addressLine1 String
+  lat          Decimal?
+  long         Decimal?
+  addressLine2 String?
+  city         String
+  state        String?
+  postalCode   String?
+  country      String
+  userId       String
+
+  isDefault Boolean @default(false)
+
+  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}

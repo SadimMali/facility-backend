@@ -1,11 +1,11 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../lib/prisma/prisma.service.js';
-import { NotFoundError } from 'rxjs';
 import bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -32,7 +32,35 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  // login fn
+  /// Signup fn
+  async signup(body: UserDetails) {
+    const { email, password, firstName, middleName, lastName } = body;
+
+    const isUserExistsWithEmail = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (isUserExistsWithEmail)
+      throw new ConflictException('User with the email already exists');
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        firstName,
+        middleName,
+        lastName,
+        password: hashedPassword,
+      },
+    });
+
+    return { user: sanitizeUser(user) };
+  }
+
+  // Fn Login
   async login(payload: UserCredentials) {
     const { email, password } = payload;
 

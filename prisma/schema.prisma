@@ -19,6 +19,12 @@ enum ROLE {
   TECHNICIAN
 }
 
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
 model User {
   user_id    String  @id @default(uuid())
   email      String  @unique
@@ -27,9 +33,9 @@ model User {
   lastName   String
   password   String
   avatar_url String?
-  role       ROLE    @default(USER)
 
-  addresses Address[]
+  addresses               Address[]
+  organizationMemberships OrganizationMembership[]
 
   createdAt DateTime @default(now())
   updateAt  DateTime @updatedAt
@@ -57,4 +63,47 @@ model Address {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+model Organization {
+  id                 String           @id @default(uuid())
+  slug               String           @unique
+  orgName            String           @map("org_name")
+  description        String?
+  industryCategoryId String
+  industryCategory   IndustryCategory @relation(fields: [industryCategoryId], references: [id], onDelete: Cascade)
+
+  timeZone String @default("UTC")
+  currency String @default("USD") @db.VarChar(3)
+  locale   String @default("en-US")
+
+  status                  OrganizationStatus       @default(ACTIVE)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  organizationMemberships OrganizationMembership[]
+
+  @@index([id, slug, status])
+}
+
+model IndustryCategory {
+  id            String         @id @default(uuid())
+  name          String
+  organizations Organization[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model OrganizationMembership {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  role           ROLE     @default(USER)
+  joinedAt       DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId])
 }

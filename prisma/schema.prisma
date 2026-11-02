@@ -31,6 +31,53 @@ enum OrganizationStatus {
   ARCHIVED
 }
 
+enum JobType {
+  MAINTENANCE
+  INSPECTION
+  REPAIR
+  INSTALLATION
+  CLEANING
+  OTHER
+}
+
+enum JobStatus {
+  REQUESTED
+  PENDING
+  ACCEPTED
+  ASSIGNED
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum JobPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum JobScheduleType {
+  ASAP
+  SCHEDULED
+  RECURRING
+}
+
+enum AssignmentStatus {
+  ASSIGNED
+  ACCEPTED
+  DECLINED
+  COMPLETED
+}
+
+enum ChecklistItemStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+}
+
 model User {
   user_id    String  @id @default(uuid())
   email      String  @unique
@@ -43,6 +90,7 @@ model User {
 
   addresses               Address[]
   organizationMemberships OrganizationMembership[]
+  jobs                    Job[]
 
   createdAt DateTime @default(now())
   updateAt  DateTime @updatedAt
@@ -88,6 +136,7 @@ model Organization {
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   organizationMemberships OrganizationMembership[]
+  jobs                    Job[]
 
   @@index([id, slug, status])
 }
@@ -113,4 +162,56 @@ model OrganizationMembership {
   @@unique([organizationId, userId])
   @@index([userId])
   @@index([organizationId])
+}
+
+model Job {
+  id String @id() @default(cuid())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // job info
+  jobNumber   String
+  title       String
+  description String?     @db.Text
+  type        JobType
+  status      JobStatus   @default(REQUESTED)
+  priority    JobPriority @default(MEDIUM)
+
+  // Scheduling
+  scheduleType JobScheduleType @default(ASAP)
+  scheduledAt  DateTime?
+  dueAt        DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+
+  customerNotes String?
+  internalNotes String?
+
+  // customer info
+  customerId String?
+  customer   User?   @relation(fields: [customerId], references: [user_id])
+
+  checklists JobChecklistItem[]
+}
+
+model JobChecklistItem {
+  id    String @id @default(cuid())
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  status      ChecklistItemStatus @default(PENDING)
+
+  isRequired Boolean @default(true)
+  sortOrder  Int     @default(0)
+
+  completedAt DateTime?
+  completedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jobId, sortOrder])
 }

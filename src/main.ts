@@ -7,6 +7,8 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new TransformerInterceptor());
 
-  await app.listen(process.env.PORT ?? 3000);
+  console.log(process.env.DATABASE_URL);
+
+  await app.listen(process.env.PORT ?? 5000);
 }
 await bootstrap();

@@ -125,8 +125,8 @@ model Organization {
   slug               String           @unique
   orgName            String           @map("org_name")
   description        String?
-  industryCategoryId String
-  industryCategory   IndustryCategory @relation(fields: [industryCategoryId], references: [id], onDelete: Cascade)
+  organizationCategoryId String
+  organizationCategory   OrganizationCategory @relation(fields: [organizationCategoryId], references: [id], onDelete: Cascade)
 
   timeZone String @default("UTC")
   currency String @default("USD") @db.VarChar(3)
@@ -141,7 +141,7 @@ model Organization {
   @@index([id, slug, status])
 }
 
-model IndustryCategory {
+model OrganizationCategory {
   id            String         @id @default(uuid())
   name          String
   organizations Organization[]

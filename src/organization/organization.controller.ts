@@ -1,6 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { OrganizationService } from './organization.service.js';
-import { CreateOrganizationCategoryDto } from './dto/CreateOrganizationDto.js';
+import {
+  CreateOrganizationCategoryDto,
+  CreateOrganizationDto,
+} from './dto/CreateOrganizationDto.js';
 
 @Controller('organization')
 export class OrganizationController {
@@ -18,5 +21,10 @@ export class OrganizationController {
   @Delete('category/:id')
   deleteOrganizationCategory(@Param('id') orgCategoryId: string) {
     return this.organizationService.deleteOrganizationCategory(orgCategoryId);
+  }
+
+  @Post('')
+  createOrganization(@Body() createOrganizationDto: CreateOrganizationDto) {
+    return this.organizationService.createOrganization(createOrganizationDto);
   }
 }

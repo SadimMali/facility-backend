@@ -8,6 +8,7 @@ import {
   CreateOrganizationCategoryDto,
   CreateOrganizationDto,
 } from './dto/CreateOrganizationDto.js';
+import { OrganizationRole } from '../../generated/prisma/enums.js';
 
 @Injectable()
 export class OrganizationService {
@@ -64,6 +65,41 @@ export class OrganizationService {
         currency: data?.currency,
         locale: data?.locale,
         status: data.status,
+      },
+    });
+  }
+
+  // organziation memebership
+  async createOrganizationMembership(
+    organizationId: string,
+    userId: string,
+    role: OrganizationRole,
+  ) {
+    const organization = await this.prisma.organization.findUnique({
+      where: {
+        id: organizationId,
+      },
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        user_id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    return this.prisma.organizationMembership.create({
+      data: {
+        organizationId,
+        userId,
+        role,
       },
     });
   }
